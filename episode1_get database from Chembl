@@ -1,0 +1,25 @@
+from chembl_webresource_client.new_client import new_client
+
+# 初始化客户端
+target = new_client.target
+activity = new_client.activity
+
+# 搜索乙型流感病毒相关的目标
+target_query = target.search('Influenza B virus')
+targets = target_query[:1]  # 假设我们只关注第一个搜索结果
+
+if targets:
+    target_chembl_id = targets[0]['target_chembl_id']
+    print(f"Found target: {target_chembl_id}")
+    
+    # 获取与该目标相关的化合物及其IC50值
+    activities = activity.filter(target_chembl_id=target_chembl_id).filter(standard_type="IC50")
+    
+    # 将结果转换为DataFrame，便于查看和分析
+    import pandas as pd
+    df = pd.DataFrame.from_records(activities[:10])  # 只获取前10条记录作为示例
+    
+    # 显示结果
+    print(df[['molecule_chembl_id', 'canonical_smiles', 'standard_value', 'standard_units']])
+else:
+    print("No targets found.")
