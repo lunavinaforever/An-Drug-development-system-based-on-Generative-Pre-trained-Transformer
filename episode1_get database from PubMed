@@ -1,0 +1,40 @@
+# 首先安装必要的库
+!pip install biopython
+
+from Bio import Entrez
+
+# 设置您的邮箱（NCBI要求）
+Entrez.email = "nirvana_luna_zhang@outlook.com"
+
+def search_pubmed(keyword):
+    """使用给定的关键词在PubMed中搜索，并返回搜索结果的ID列表"""
+    handle = Entrez.esearch(db="pubmed", 
+                            term=keyword, 
+                            retmax=10)  # 这里设置最大返回记录数为10
+    record = Entrez.read(handle)
+    handle.close()
+    return record["IdList"]
+
+def fetch_details(id_list):
+    """根据PubMed ID获取详细记录"""
+    ids = ','.join(id_list)
+    handle = Entrez.efetch(db="pubmed",
+                           id=ids,
+                           retmode="xml")
+    records = Entrez.read(handle)
+    return records
+
+# 使用乙型流感病毒作为关键词搜索PubMed
+ids = search_pubmed("Influenza B virus")
+papers = fetch_details(ids)
+
+# 输出第一篇论文的标题和摘要
+for i, paper in enumerate(papers['PubmedArticle']):
+    print(f"标题: {paper['MedlineCitation']['Article']['ArticleTitle']}")
+    try:
+        abstract = paper['MedlineCitation']['Article']['Abstract']['AbstractText'][0]
+        print(f"摘要: {abstract}\n")
+    except:
+        print("没有摘要。\n")
+    if i == 4:  # 只打印第一篇论文的信息作为示例
+        break
