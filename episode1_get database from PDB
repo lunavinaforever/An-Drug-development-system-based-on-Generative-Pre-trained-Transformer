@@ -1,0 +1,50 @@
+!pip install biopython
+import requests
+import json
+
+# 设置搜索关键词
+search_keyword = 'Influenza B virus'
+
+# 构建RCSB PDB REST API的搜索URL
+search_url = f"https://search.rcsb.org/rcsbsearch/v1/query?json="
+
+# 定义搜索参数
+query_params = {
+    "query": {
+        "type": "group",
+        "logical_operator": "and",
+        "nodes": [
+            {
+                "type": "terminal",
+                "service": "text",
+                "parameters": {
+                    "operator": "exact_match",
+                    "value": search_keyword,
+                    "attribute": "rcsb_entity_source_organism.rcsb_gene_name.value"
+                }
+            }
+        ]
+    },
+    "request_options": {
+        "return_all_hits": True,
+    },
+    "return_type": "entry"
+}
+
+# 发送POST请求
+response = requests.post(search_url, json=query_params)
+
+# 检查响应状态码
+if response.status_code == 200:
+    # 解析响应的JSON数据
+    search_results = response.json()
+    
+    # 打印结果数量
+    print(f"Found {search_results['total_count']} entries for {search_keyword}.")
+    
+    # 打印每个条目的PDB ID和标题（仅展示前几个结果）
+    for entry in search_results['result_set'][:5]:  # 仅展示前5个结果作为示例
+        print(f"PDB ID: {entry['identifier']}, Title: {entry['services'][0]['nodes'][0]['match_context'][0]['highlighted']}")
+
+else:
+    print('Search failed.')
