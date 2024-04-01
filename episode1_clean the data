@@ -1,0 +1,45 @@
+import pandas as pd
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+
+# 示例数据
+data = {
+    'Compound_ID': ['Cmp1', 'Cmp2', 'Cmp3', 'Cmp4'],
+    'Molecular_Weight': [300.1, None, 250.3, 400.5],
+    'LogP': [5.3, 4.2, 3.5, None],
+    'Bioactivity_Class': ['active', 'inactive', 'active', 'inactive']
+}
+df = pd.DataFrame(data)
+
+# 定义处理缺失数值的策略
+num_imputer = SimpleImputer(strategy='mean')
+
+# 定义数值型特征的标准化处理
+num_features = ['Molecular_Weight', 'LogP']
+num_transformer = Pipeline(steps=[
+    ('imputer', num_imputer),
+    ('scaler', StandardScaler())
+])
+
+# 定义分类特征的编码处理
+cat_features = ['Bioactivity_Class']
+cat_transformer = OneHotEncoder()
+
+# 将处理步骤合并到ColumnTransformer
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', num_transformer, num_features),
+        ('cat', cat_transformer, cat_features)
+    ]
+)
+
+# 应用预处理步骤
+df_preprocessed = preprocessor.fit_transform(df)
+
+# 转换回DataFrame（对于后续步骤可能有帮助）
+columns_transformed = num_features + ['Active', 'Inactive']  # 根据OneHotEncoder结果调整
+df_preprocessed = pd.DataFrame(df_preprocessed, columns=columns_transformed)
+
+print(df_preprocessed)
