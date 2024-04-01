@@ -1,0 +1,39 @@
+!pip install spacy
+!python -m spacy download en_core_sci_lg
+from Bio import Entrez
+import spacy
+
+# 初始化spaCy的生物医学模型
+nlp = spacy.load("en_core_sci_lg")
+
+def search_pubmed(keyword):
+    """使用给定的关键词在PubMed中搜索，并返回搜索结果的ID列表"""
+    Entrez.email = "nirvana_luna_zhang@outlook.com"  # 请替换成你的邮箱
+    handle = Entrez.esearch(db="pubmed", term=keyword, retmax=10)
+    record = Entrez.read(handle)
+    handle.close()
+    return record["IdList"]
+
+def fetch_abstract(pubmed_id):
+    """根据PubMed ID获取文献的摘要"""
+    handle = Entrez.efetch(db="pubmed", id=pubmed_id, retmode="xml")
+    papers = Entrez.read(handle)
+    try:
+        # 尝试获取摘要文本
+        abstract = papers['PubmedArticle'][0]['MedlineCitation']['Article']['Abstract']['AbstractText'][0]
+    except:
+        abstract = ""
+    return abstract
+
+# 搜索与乙型流感病毒相关的文献
+ids = search_pubmed("Influenza B virus")
+
+# 获取并打印第一个文献的摘要
+abstract = fetch_abstract(ids[0])
+print(abstract)
+
+# 使用spaCy提取信息
+doc = nlp(abstract)
+print("提取的实体:")
+for ent in doc.ents:
+    print(ent.text, ent.label_)
